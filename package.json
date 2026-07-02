@@ -1,6 +1,6 @@
 {
   "name": "astro-sitemap-pro-component",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Yoast/RankMath-style XML sitemaps: a sitemap index that splits into per-type sub-sitemaps, with hreflang alternates, lastmod, image entries and a localized XSL stylesheet. Framework-agnostic core with Astro & Next adapters. Dependency-free.",
   "type": "module",
   "license": "MIT",
@@ -13,22 +13,59 @@
   "bugs": {
     "url": "https://github.com/dcarrero/Astro-Sitemap-pro-Component/issues"
   },
-  "keywords": ["astro", "next", "sitemap", "sitemap-index", "seo", "hreflang", "xsl", "yoast", "rankmath", "i18n"],
-  "files": ["dist", "src", "README.md", "CHANGELOG.md", "LICENSE"],
+  "keywords": [
+    "astro",
+    "next",
+    "sitemap",
+    "sitemap-index",
+    "seo",
+    "hreflang",
+    "xsl",
+    "yoast",
+    "rankmath",
+    "i18n"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./core": { "types": "./dist/core.d.ts", "default": "./dist/core.js" },
-    "./i18n": { "types": "./dist/i18n.d.ts", "default": "./dist/i18n.js" },
-    "./stylesheet": { "types": "./dist/stylesheet.d.ts", "default": "./dist/stylesheet.js" },
-    "./handlers": { "types": "./dist/handlers.d.ts", "default": "./dist/handlers.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n.d.ts",
+      "default": "./dist/i18n.js"
+    },
+    "./stylesheet": {
+      "types": "./dist/stylesheet.d.ts",
+      "default": "./dist/stylesheet.js"
+    },
+    "./handlers": {
+      "types": "./dist/handlers.d.ts",
+      "default": "./dist/handlers.js"
+    },
+    "./astro": {
+      "types": "./dist/astro.d.ts",
+      "default": "./dist/astro.js"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepare": "tsc -p tsconfig.json"
   },
   "devDependencies": {
+    "@types/node": "^26.1.0",
     "typescript": "^5.9.0"
   }
 }

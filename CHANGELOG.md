@@ -3,6 +3,28 @@
 All notable changes to **astro-sitemap-pro-component**. Format based on
 [Keep a Changelog](https://keepachangelog.com/); versioning [SemVer](https://semver.org/).
 
+## [0.3.0] — 2026-07-02
+
+### Added
+- **Sitemap coverage verification** (`./astro`, Node-only): `sitemapCoverage(opts?)` Astro
+  integration. After `astro build` it compares every generated HTML page against the union of
+  `<loc>` entries reachable from the sitemap index (following sub-sitemaps) and reports
+  **MISSING** pages (built but not listed) and **STALE** entries (listed but not built).
+  Options: `index` (default `"sitemap.xml"`), `ignore(pathname)`, `strict` (default `true`,
+  fails the build on drift). This closes the classic gap of endpoint-based sitemaps: adding a
+  new page type without adding it to the sitemap now breaks the build instead of silently
+  hurting SEO.
+- **`urlsForAllLangs(clusters, opts?)`** (`./i18n`): expand clusters into ONE urlset containing
+  every language version with the full reciprocal hreflang set — Yoast-style "split by type,
+  not by language" for multilingual sites that want a single file per content type.
+- **Async getters**: `sitemapIndexHandler` / `urlsetHandler` now accept sync **or async**
+  functions (e.g. Astro's `getCollection()`), and all handlers return `Promise<Response>`.
+
+### Changed
+- `dist/` is now **committed** — the package installs straight from a git URL
+  (`github:dcarrero/Astro-Sitemap-pro-Component#v0.3.0`) with no build step, which CI/CD
+  environments (Cloudflare Pages, GitHub Actions) need. `prepare` still rebuilds on install.
+
 ## [0.2.1] — 2026-07-02
 
 ### Added

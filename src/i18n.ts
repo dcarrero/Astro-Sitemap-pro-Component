@@ -59,6 +59,30 @@ export function urlsForLang(
   return out;
 }
 
+/**
+ * Expand clusters into ONE urlset containing EVERY language version, each with the
+ * full reciprocal hreflang set — Yoast-style "split by type, not by language".
+ * Single-language clusters get no alternates (self-referencing hreflang is noise).
+ * Feed the result to `renderUrlset`.
+ */
+export function urlsForAllLangs(clusters: UrlCluster[], opts?: LangOptions): SitemapUrl[] {
+  const out: SitemapUrl[] = [];
+  for (const cluster of clusters) {
+    const alternates = cluster.length > 1 ? clusterAlternates(cluster, opts) : undefined;
+    for (const u of cluster) {
+      out.push({
+        loc: u.loc,
+        lastmod: u.lastmod,
+        changefreq: u.changefreq,
+        priority: u.priority,
+        images: u.images,
+        alternates,
+      });
+    }
+  }
+  return out;
+}
+
 /** Distinct languages present across all clusters (stable order of first appearance). */
 export function languagesOf(clusters: UrlCluster[]): string[] {
   const seen: string[] = [];

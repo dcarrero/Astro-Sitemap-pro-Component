@@ -24,10 +24,13 @@ extracted to be reusable — a sibling of
 
 ## Install
 
-Until it's on npm, add it as a local/git dependency, or copy `src/` into your project.
+Until it's on npm, install straight from GitHub (works in CI — `dist/` is committed), add it as a
+local dependency, or copy `src/` into your project.
 
 ```jsonc
-// package.json
+// package.json — pin to a tag
+"dependencies": { "astro-sitemap-pro-component": "github:dcarrero/Astro-Sitemap-pro-Component#v0.3.0" }
+// or, for local development:
 "dependencies": { "astro-sitemap-pro-component": "file:../astro-sitemap-pro-component" }
 ```
 
@@ -95,6 +98,41 @@ export const GET = urlsetHandler(() => myNewsUrls());
 // src/pages/sitemap.xsl.ts   (served at /sitemap.xsl)
 import { stylesheetHandler } from "astro-sitemap-pro-component/handlers";
 export const GET = stylesheetHandler({ lang: "es", brand: "My Site", accent: "#ff2e74" });
+```
+
+Getters can be **async** (e.g. Astro's `getCollection()`): `urlsetHandler(async () => ...)`.
+
+### Coverage verification (Astro, recommended)
+
+Endpoint-based sitemaps can drift: someone adds a page type and forgets the sitemap. The
+`sitemapCoverage` integration fails the build when that happens — after `astro build` it compares
+every generated HTML page against the union of `<loc>` entries reachable from the sitemap index:
+
+```js
+// astro.config.mjs
+import { sitemapCoverage } from "astro-sitemap-pro-component/astro";
+
+export default defineConfig({
+  integrations: [
+    sitemapCoverage({
+      // pathnames normalized without slashes; root = "". 404/500 are always ignored.
+      ignore: (p) => p === "offline",
+      strict: true, // default — fail the build on MISSING/STALE URLs
+    }),
+  ],
+});
+```
+
+`./astro` is Node-only (reads the build output); the rest of the package stays edge-safe.
+
+### One file per type with all languages (`urlsForAllLangs`)
+
+Prefer Yoast-style "split by **type**, not by language"? Expand clusters into a single urlset
+where every language version carries the full reciprocal hreflang set:
+
+```ts
+import { urlsForAllLangs } from "astro-sitemap-pro-component/i18n";
+export const GET = urlsetHandler(() => urlsForAllLangs(clusters, { xDefaultLang: "en" }));
 ```
 
 ## Usage — Next.js (App Router)

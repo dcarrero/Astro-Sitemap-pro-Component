@@ -104,3 +104,20 @@ Sitemap: https://mysite.com/sitemap.xml
 - `lastmod` accepts a `Date` or an ISO string.
 - Keep each sub-sitemap under 50,000 URLs / 50 MB (split further if needed — just add more types).
 - The XSL is for humans; crawlers read the raw XML regardless.
+
+## 4. Coverage verification (Astro)
+
+Endpoint-based sitemaps drift when a new page type ships without a sitemap entry. Add the
+`sitemapCoverage` integration and the build fails (or warns with `strict: false`) listing
+**MISSING** pages (built but unlisted) and **STALE** entries (listed but not built):
+
+```js
+// astro.config.mjs
+import { sitemapCoverage } from "astro-sitemap-pro-component/astro";
+export default defineConfig({
+  integrations: [sitemapCoverage({ ignore: (p) => p === "offline" })],
+});
+```
+
+Pathnames passed to `ignore` are normalized without leading/trailing slashes (root = `""`),
+and `404`/`500` are always skipped. `./astro` is Node-only; don't import it from edge code.
