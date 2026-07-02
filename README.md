@@ -1,5 +1,7 @@
 # astro-sitemap-pro-component
 
+Repository: **https://github.com/dcarrero/Astro-Sitemap-pro-Component** · MIT
+
 **Yoast/RankMath-style XML sitemaps** for Astro, Next.js, or any build. Instead of one giant
 `sitemap.xml`, you get a **sitemap index** that splits into per-type **sub-sitemaps**
 (`page-sitemap.xml`, `news-sitemap.xml`, …) — friendlier for Google Search Console (coverage by
@@ -8,7 +10,8 @@ type) and scalable past 50k URLs. Each URL carries **hreflang** alternates and `
 table in the browser.
 
 Framework-agnostic core (pure strings, zero dependencies) with thin adapters. Built for
-[especialmundial.com](https://especialmundial.com); extracted to be reusable — a sibling of
+[especialmundial.com](https://especialmundial.com) and [Cloud Privado](https://cloudprivado.com);
+extracted to be reusable — a sibling of
 [astro-social-ai-component](https://github.com/dcarrero/Astro-Social-AI-Component).
 
 ## What it gives you

@@ -5,12 +5,29 @@
   "type": "module",
   "license": "MIT",
   "author": "David Carrero Fernández-Baillo (https://carrero.es)",
+  "homepage": "https://github.com/dcarrero/Astro-Sitemap-pro-Component#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcarrero/Astro-Sitemap-pro-Component.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dcarrero/Astro-Sitemap-pro-Component/issues"
+  },
   "keywords": ["astro", "next", "sitemap", "sitemap-index", "seo", "hreflang", "xsl", "yoast", "rankmath", "i18n"],
-  "files": ["src", "README.md", "CHANGELOG.md", "LICENSE"],
+  "files": ["dist", "src", "README.md", "CHANGELOG.md", "LICENSE"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./core": "./src/core.ts",
-    "./stylesheet": "./src/stylesheet.ts",
-    "./handlers": "./src/handlers.ts"
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./core": { "types": "./dist/core.d.ts", "default": "./dist/core.js" },
+    "./stylesheet": { "types": "./dist/stylesheet.d.ts", "default": "./dist/stylesheet.js" },
+    "./handlers": { "types": "./dist/handlers.d.ts", "default": "./dist/handlers.js" }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
   }
 }
