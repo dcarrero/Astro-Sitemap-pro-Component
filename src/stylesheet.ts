@@ -1,0 +1,178 @@
+// sitemap-pro · XSL stylesheet builder (i18n)
+// Produces the XSLT that browsers apply to render a sitemap (index or urlset) as
+// a clean, branded HTML table — Yoast-style. Labels are localized; the palette is
+// themable. Serve the result at the same href you pass as `stylesheetHref` in the
+// core render options (default "/sitemap.xsl").
+
+export type XslStrings = {
+  title: string; // <title> and header
+  subtitle: string; // small line under the header
+  indexNote: string; // "Sitemap index: N sub-sitemaps…" ({n} placeholder)
+  urlsNote: string; // "This sitemap contains N URLs" ({n} placeholder)
+  colSitemap: string;
+  colUrl: string;
+  colFreq: string;
+  colPriority: string;
+  colLastmod: string;
+  footer: string;
+};
+
+export const XSL_STRINGS: Record<string, XslStrings> = {
+  en: {
+    title: "XML Sitemap", subtitle: "Sitemap for search engines",
+    indexNote: "Sitemap index: {n} sub-sitemaps by content type.",
+    urlsNote: "This sitemap contains {n} URLs",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Frequency",
+    colPriority: "Priority", colLastmod: "Last modified",
+    footer: "Generated automatically. Read by Google, Bing and other search engines.",
+  },
+  es: {
+    title: "Sitemap XML", subtitle: "Mapa del sitio para motores de búsqueda",
+    indexNote: "Índice de sitemaps: {n} sub-sitemaps por tipo de contenido.",
+    urlsNote: "Este sitemap contiene {n} URL",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Frecuencia",
+    colPriority: "Prioridad", colLastmod: "Última modificación",
+    footer: "Generado automáticamente. Lo leen Google, Bing y otros buscadores.",
+  },
+  fr: {
+    title: "Sitemap XML", subtitle: "Plan du site pour les moteurs de recherche",
+    indexNote: "Index des sitemaps : {n} sous-sitemaps par type de contenu.",
+    urlsNote: "Ce sitemap contient {n} URL",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Fréquence",
+    colPriority: "Priorité", colLastmod: "Dernière modification",
+    footer: "Généré automatiquement. Lu par Google, Bing et d'autres moteurs.",
+  },
+  de: {
+    title: "XML-Sitemap", subtitle: "Sitemap für Suchmaschinen",
+    indexNote: "Sitemap-Index: {n} Sub-Sitemaps nach Inhaltstyp.",
+    urlsNote: "Diese Sitemap enthält {n} URLs",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Häufigkeit",
+    colPriority: "Priorität", colLastmod: "Zuletzt geändert",
+    footer: "Automatisch generiert. Gelesen von Google, Bing und anderen Suchmaschinen.",
+  },
+  pt: {
+    title: "Sitemap XML", subtitle: "Mapa do site para motores de busca",
+    indexNote: "Índice de sitemaps: {n} sub-sitemaps por tipo de conteúdo.",
+    urlsNote: "Este sitemap contém {n} URLs",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Frequência",
+    colPriority: "Prioridade", colLastmod: "Última modificação",
+    footer: "Gerado automaticamente. Lido por Google, Bing e outros buscadores.",
+  },
+  it: {
+    title: "Sitemap XML", subtitle: "Mappa del sito per i motori di ricerca",
+    indexNote: "Indice dei sitemap: {n} sotto-sitemap per tipo di contenuto.",
+    urlsNote: "Questa sitemap contiene {n} URL",
+    colSitemap: "Sitemap", colUrl: "URL", colFreq: "Frequenza",
+    colPriority: "Priorità", colLastmod: "Ultima modifica",
+    footer: "Generato automaticamente. Letto da Google, Bing e altri motori.",
+  },
+};
+
+export type StylesheetOptions = {
+  /** UI language (key in XSL_STRINGS). Default "en". */
+  lang?: string;
+  /** Brand name shown in the header (e.g. "EspecialMundial"). */
+  brand?: string;
+  /** Accent color (header underline, links). Default "#2563eb". */
+  accent?: string;
+  /** Ink (text) color. Default "#13201a". */
+  ink?: string;
+  /** Override any label. */
+  strings?: Partial<XslStrings>;
+};
+
+/** Build the XSL stylesheet string. Serve with content-type "text/xsl". */
+export function buildStylesheet(opts: StylesheetOptions = {}): string {
+  const s: XslStrings = { ...(XSL_STRINGS[opts.lang || "en"] || XSL_STRINGS.en), ...(opts.strings || {}) };
+  const accent = opts.accent || "#2563eb";
+  const ink = opts.ink || "#13201a";
+  const brand = opts.brand || "";
+  const brandHtml = brand ? `${escapeXslText(brand)} — ` : "";
+  // {n} → XSLT value-of count. We split the note strings around the placeholder.
+  const noteParts = (tpl: string) => tpl.split("{n}").map(escapeXslText);
+  const [idxA, idxB] = noteParts(s.indexNote);
+  const [urlA, urlB] = noteParts(s.urlsNote);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <xsl:output method="html" encoding="UTF-8" indent="yes"/>
+  <xsl:template match="/">
+    <html lang="${escapeXslAttr(opts.lang || "en")}">
+      <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="robots" content="noindex, follow"/>
+        <title>${escapeXslText(s.title)}${brand ? " · " + escapeXslText(brand) : ""}</title>
+        <style>
+          :root { color-scheme: light dark; }
+          body { margin:0; padding:0 16px 48px; font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:${ink}; background:#f7f7f2; }
+          .wrap { max-width:1000px; margin:0 auto; }
+          header { padding:28px 0 18px; border-bottom:3px solid ${accent}; margin-bottom:22px; }
+          h1 { margin:0 0 4px; font-size:24px; }
+          h1 span { color:${accent}; }
+          .meta { color:#5c685f; font-size:13px; }
+          .note { background:#fff; border:1px solid #e3e1d8; border-radius:10px; padding:12px 14px; margin:0 0 20px; color:#5c685f; font-size:13px; }
+          table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e3e1d8; border-radius:10px; overflow:hidden; }
+          th,td { text-align:left; padding:10px 14px; border-bottom:1px solid #eceae1; font-size:13.5px; }
+          th { background:${ink}; color:#fff; font-weight:600; }
+          tr:last-child td { border-bottom:0; }
+          tr:hover td { background:#fbfbf7; }
+          a { color:${accent}; text-decoration:none; word-break:break-all; }
+          a:hover { text-decoration:underline; }
+          td.num { text-align:right; font-variant-numeric:tabular-nums; color:#5c685f; white-space:nowrap; }
+          .count { display:inline-block; margin-left:8px; padding:2px 8px; border-radius:999px; background:${accent}1a; color:${accent}; font-size:12px; font-weight:600; }
+          footer { margin-top:22px; color:#8a938b; font-size:12px; }
+        </style>
+      </head>
+      <body>
+        <div class="wrap">
+          <header>
+            <h1>${brandHtml ? `${brandHtml}` : ""}<span>${escapeXslText(s.title)}</span></h1>
+            <div class="meta">${escapeXslText(s.subtitle)}</div>
+          </header>
+          <xsl:apply-templates/>
+          <footer>${escapeXslText(s.footer)}</footer>
+        </div>
+      </body>
+    </html>
+  </xsl:template>
+
+  <xsl:template match="s:sitemapindex">
+    <p class="note">${idxA}<strong><xsl:value-of select="count(s:sitemap)"/></strong>${idxB}</p>
+    <table>
+      <tr><th>${escapeXslText(s.colSitemap)}</th><th>${escapeXslText(s.colLastmod)}</th></tr>
+      <xsl:for-each select="s:sitemap">
+        <tr>
+          <td><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td>
+          <td class="num"><xsl:value-of select="substring(s:lastmod,1,10)"/></td>
+        </tr>
+      </xsl:for-each>
+    </table>
+  </xsl:template>
+
+  <xsl:template match="s:urlset">
+    <p class="note">${urlA}<span class="count"><xsl:value-of select="count(s:url)"/></span>${urlB}</p>
+    <table>
+      <tr><th>${escapeXslText(s.colUrl)}</th><th>${escapeXslText(s.colFreq)}</th><th>${escapeXslText(s.colPriority)}</th><th>${escapeXslText(s.colLastmod)}</th></tr>
+      <xsl:for-each select="s:url">
+        <tr>
+          <td><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td>
+          <td><xsl:value-of select="s:changefreq"/></td>
+          <td class="num"><xsl:value-of select="s:priority"/></td>
+          <td class="num"><xsl:value-of select="substring(s:lastmod,1,10)"/></td>
+        </tr>
+      </xsl:for-each>
+    </table>
+  </xsl:template>
+</xsl:stylesheet>`;
+}
+
+function escapeXslText(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escapeXslAttr(s: string): string {
+  return escapeXslText(s).replace(/"/g, "&quot;");
+}

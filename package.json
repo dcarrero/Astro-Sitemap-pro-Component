@@ -1,0 +1,16 @@
+{
+  "name": "astro-sitemap-pro-component",
+  "version": "0.1.0",
+  "description": "Yoast/RankMath-style XML sitemaps: a sitemap index that splits into per-type sub-sitemaps, with hreflang alternates, lastmod, image entries and a localized XSL stylesheet. Framework-agnostic core with Astro & Next adapters. Dependency-free.",
+  "type": "module",
+  "license": "MIT",
+  "author": "David Carrero Fernández-Baillo (https://carrero.es)",
+  "keywords": ["astro", "next", "sitemap", "sitemap-index", "seo", "hreflang", "xsl", "yoast", "rankmath", "i18n"],
+  "files": ["src", "README.md", "CHANGELOG.md", "LICENSE"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./core": "./src/core.ts",
+    "./stylesheet": "./src/stylesheet.ts",
+    "./handlers": "./src/handlers.ts"
+  }
+}

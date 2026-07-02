@@ -1,0 +1,110 @@
+// sitemap-pro · core (framework-agnostic)
+// Builds Yoast/RankMath-style sitemaps: a sitemap INDEX that links to per-type
+// sub-sitemaps, each with hreflang alternates, lastmod, optional images, and an
+// optional XSL stylesheet reference for a human-friendly view. Pure strings, no
+// dependencies — usable from Astro endpoints, Next route handlers, or any build.
+
+export type ChangeFreq =
+  | "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+
+/** hreflang alternate for an i18n URL (e.g. { hreflang: "en", href: "https://…/en/…" }). */
+export type Alternate = { hreflang: string; href: string };
+
+export type SitemapUrl = {
+  loc: string;
+  lastmod?: string | Date;
+  changefreq?: ChangeFreq;
+  priority?: number;
+  /** hreflang alternates (multilingual sites). Include an "x-default" if you have one. */
+  alternates?: Alternate[];
+  /** Absolute image URLs to attach as <image:image> (Google image sitemaps). */
+  images?: string[];
+};
+
+export type SubSitemap = { loc: string; lastmod?: string | Date };
+
+export type RenderOptions = {
+  /** Href of the XSL stylesheet, or null to omit the processing instruction. Default "/sitemap.xsl". */
+  stylesheetHref?: string | null;
+};
+
+const SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9";
+const XHTML_NS = "http://www.w3.org/1999/xhtml";
+const IMAGE_NS = "http://www.google.com/schemas/sitemap-image/1.1";
+
+export function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function iso(d: string | Date | undefined): string | undefined {
+  if (d == null) return undefined;
+  return typeof d === "string" ? d : d.toISOString();
+}
+
+function stylesheetPI(opts?: RenderOptions): string {
+  const href = opts?.stylesheetHref === undefined ? "/sitemap.xsl" : opts.stylesheetHref;
+  return href ? `\n<?xml-stylesheet type="text/xsl" href="${escapeXml(href)}"?>` : "";
+}
+
+/** Render a <urlset> (one sub-sitemap). */
+export function renderUrlset(urls: SitemapUrl[], opts?: RenderOptions): string {
+  const needsXhtml = urls.some((u) => u.alternates?.length);
+  const needsImage = urls.some((u) => u.images?.length);
+  const ns =
+    `xmlns="${SITEMAP_NS}"` +
+    (needsXhtml ? ` xmlns:xhtml="${XHTML_NS}"` : "") +
+    (needsImage ? ` xmlns:image="${IMAGE_NS}"` : "");
+
+  const body = urls
+    .map((u) => {
+      const lastmod = iso(u.lastmod);
+      const alts = (u.alternates ?? [])
+        .map(
+          (a) =>
+            `<xhtml:link rel="alternate" hreflang="${escapeXml(a.hreflang)}" href="${escapeXml(a.href)}"/>`,
+        )
+        .join("");
+      const imgs = (u.images ?? [])
+        .map((src) => `<image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`)
+        .join("");
+      return (
+        `<url><loc>${escapeXml(u.loc)}</loc>` +
+        (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
+        (u.changefreq ? `<changefreq>${u.changefreq}</changefreq>` : "") +
+        (u.priority != null ? `<priority>${u.priority.toFixed(1)}</priority>` : "") +
+        alts +
+        imgs +
+        `</url>`
+      );
+    })
+    .join("");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>${stylesheetPI(opts)}\n<urlset ${ns}>${body}</urlset>`;
+}
+
+/** Render the <sitemapindex> that links to every sub-sitemap. */
+export function renderIndex(subs: SubSitemap[], opts?: RenderOptions): string {
+  const body = subs
+    .map((s) => {
+      const lastmod = iso(s.lastmod);
+      return (
+        `<sitemap><loc>${escapeXml(s.loc)}</loc>` +
+        (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
+        `</sitemap>`
+      );
+    })
+    .join("");
+  return `<?xml version="1.0" encoding="UTF-8"?>${stylesheetPI(opts)}\n<sitemapindex xmlns="${SITEMAP_NS}">${body}</sitemapindex>`;
+}
+
+/** Wrap an XML string in a web-standard Response (works in Astro & Next handlers). */
+export function xmlResponse(xml: string): Response {
+  return new Response(xml, {
+    headers: { "content-type": "application/xml; charset=utf-8" },
+  });
+}
