@@ -48,6 +48,30 @@ You build the URL lists (that's your site's data); the package renders the XML a
 i18n is data-driven: put your language alternates in `alternates`, and pick the stylesheet UI
 language with `buildStylesheet({ lang })`.
 
+## Multilingual — split by language (`./i18n`)
+
+Model each page as a **cluster** (its versions across languages) and project one sub-sitemap per
+language. Every URL is listed with its own `<loc>` and the **full reciprocal hreflang** set — the
+setup Google recommends.
+
+```ts
+import { urlsForLang } from "astro-sitemap-pro-component/i18n";
+import { renderUrlset } from "astro-sitemap-pro-component";
+
+const clusters = posts.map((p) => [
+  { lang: "es", loc: `${SITE}/noticias/${p.es}`, changefreq: "weekly", priority: 0.6 },
+  { lang: "en", loc: `${SITE}/en/news/${p.en}`, changefreq: "weekly", priority: 0.6 },
+]);
+
+// one file per language:
+export const newsEs = () => urlsForLang(clusters, "es"); // → news-sitemap.xml
+export const newsEn = () => urlsForLang(clusters, "en"); // → news-en-sitemap.xml
+```
+
+`urlsForLang(clusters, lang, { xDefaultLang? })` returns `SitemapUrl[]` ready for `renderUrlset`.
+`x-default` defaults to the first language in each cluster (override with `xDefaultLang`). Prefer a
+single bilingual entry instead? Just build `SitemapUrl` with `alternates` directly (see Core API).
+
 ## Usage — Astro
 
 Create endpoints under `src/pages/` (static output writes real files):
