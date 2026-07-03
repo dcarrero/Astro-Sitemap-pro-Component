@@ -3,7 +3,38 @@
 All notable changes to **astro-sitemap-pro-component**. Format based on
 [Keep a Changelog](https://keepachangelog.com/); versioning [SemVer](https://semver.org/).
 
-## [0.3.0] — 2026-07-02
+## [0.4.0] — 2026-07-03
+
+### Added
+- **IndexNow** (`./indexnow`, edge-safe): notify Bing & Yandex the instant content changes —
+  the freshness signal Bing recommends.
+  - `generateKey(bytes?)` — a public IndexNow key (hex); `keyFileHandler(key)` serves it at
+    `/<key>.txt` (same handler shape as the sitemap endpoints, Astro + Next).
+  - `submitUrls(urls, opts)` — POST to IndexNow; **never throws** (a failed ping can't break a
+    deploy — the error comes back in the result), dedupes, chunks past 10k, `dryRun` for
+    local/preview, injectable `fetch`.
+  - `freshUrls(urls, { since })` + `submitFreshByLastmod(urls, opts)` — **drip** submission:
+    send only the URLs whose `lastmod` falls in a recent window, not bulk re-sends (which read
+    as spam). `isCI()` helper to gate real submits (`dryRun: !isCI()`).
+- **Sitemap validation** (`./validate`, edge-safe): `validateUrls(urls, opts?)` lints a urlset
+  and returns issues — `duplicate-loc`, `non-absolute-loc`, `tracking-param`, and
+  `uniform-lastmod` (the "`new Date()` on every build" antipattern that makes engines distrust
+  your `lastmod`). Pure: no I/O, no logging.
+- **`latestLastmod(items)`** (`./core`): derive an honest sub-sitemap `<lastmod>` for the index
+  straight from the URLs it lists — `renderIndex([{ loc, lastmod: latestLastmod(urls) }, …])` —
+  instead of hand-maintaining (and forgetting) it.
+
+### Changed
+- **`sitemapCoverage`** now runs SEO **health checks** alongside coverage, in one build-time
+  report (errors fail the build under `strict`; warnings only log):
+  - `checkNoindex` (default on) — a listed page that renders `<meta name="robots" …noindex…>`
+    (error). `checkCanonical` (default on) — a listed page whose `<link rel="canonical">` points
+    elsewhere (warning). `lint` (default on) — runs `validateUrls` per sub-sitemap plus a
+    cross-file duplicate check.
+  - The report now groups **errors** and **warnings** and lists them all at once instead of
+    throwing on the first mismatch.
+
+
 
 ### Added
 - **Sitemap coverage verification** (`./astro`, Node-only): `sitemapCoverage(opts?)` Astro

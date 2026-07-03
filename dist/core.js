@@ -26,6 +26,24 @@ function iso(d) {
         return undefined;
     return typeof d === "string" ? d : d.toISOString();
 }
+/**
+ * The most recent lastmod among items (ISO string), or undefined if none carry one.
+ * Use it to derive an HONEST `<lastmod>` for a sub-sitemap in the index straight from
+ * the URLs it lists — instead of hand-maintaining (and forgetting) it:
+ *
+ *   renderIndex([{ loc: "/news-sitemap.xml", lastmod: latestLastmod(newsUrls) }, …])
+ *
+ * Assumes ISO-8601/UTC timestamps, which sort lexicographically.
+ */
+export function latestLastmod(items) {
+    let best;
+    for (const it of items) {
+        const v = iso(it.lastmod);
+        if (v && (best === undefined || v > best))
+            best = v;
+    }
+    return best;
+}
 function stylesheetPI(opts) {
     const href = opts?.stylesheetHref === undefined ? "/sitemap.xsl" : opts.stylesheetHref;
     return href ? `\n<?xml-stylesheet type="text/xsl" href="${escapeXml(href)}"?>` : "";

@@ -26,6 +26,18 @@ export type RenderOptions = {
 };
 export declare const REPO_URL = "https://github.com/dcarrero/Astro-Sitemap-pro-Component";
 export declare function escapeXml(s: string): string;
+/**
+ * The most recent lastmod among items (ISO string), or undefined if none carry one.
+ * Use it to derive an HONEST `<lastmod>` for a sub-sitemap in the index straight from
+ * the URLs it lists — instead of hand-maintaining (and forgetting) it:
+ *
+ *   renderIndex([{ loc: "/news-sitemap.xml", lastmod: latestLastmod(newsUrls) }, …])
+ *
+ * Assumes ISO-8601/UTC timestamps, which sort lexicographically.
+ */
+export declare function latestLastmod(items: {
+    lastmod?: string | Date;
+}[]): string | undefined;
 /** Render a <urlset> (one sub-sitemap). */
 export declare function renderUrlset(urls: SitemapUrl[], opts?: RenderOptions): string;
 /** Render the <sitemapindex> that links to every sub-sitemap. */
