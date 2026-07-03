@@ -9,8 +9,8 @@ import {
   type RenderOptions,
   type SitemapUrl,
   type SubSitemap,
-} from "./core";
-import { buildStylesheet, type StylesheetOptions } from "./stylesheet";
+} from "./core.js";
+import { buildStylesheet, type StylesheetOptions } from "./stylesheet.js";
 
 type MaybePromise<T> = T | Promise<T>;
 type Handler = () => Promise<Response>;

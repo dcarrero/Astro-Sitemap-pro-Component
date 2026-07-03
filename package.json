@@ -1,6 +1,6 @@
 {
   "name": "astro-sitemap-pro-component",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Yoast/RankMath-style XML sitemaps: a sitemap index that splits into per-type sub-sitemaps, with hreflang alternates, lastmod, image entries and a localized XSL stylesheet. Framework-agnostic core with Astro & Next adapters. Dependency-free.",
   "type": "module",
   "license": "MIT",
@@ -62,6 +62,14 @@
     "./indexnow": {
       "types": "./dist/indexnow.d.ts",
       "default": "./dist/indexnow.js"
+    },
+    "./news": {
+      "types": "./dist/news.d.ts",
+      "default": "./dist/news.js"
+    },
+    "./robots": {
+      "types": "./dist/robots.d.ts",
+      "default": "./dist/robots.js"
     },
     "./astro": {
       "types": "./dist/astro.d.ts",

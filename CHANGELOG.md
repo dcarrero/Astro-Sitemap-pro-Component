@@ -3,6 +3,29 @@
 All notable changes to **astro-sitemap-pro-component**. Format based on
 [Keep a Changelog](https://keepachangelog.com/); versioning [SemVer](https://semver.org/).
 
+## [0.5.0] — 2026-07-03
+
+### Added
+- **News sitemaps** (`./news`): `newsUrls(articles, opts)` builds a `<urlset>` where each `<url>`
+  carries a `<news:news>` block (`publication` name/language, `publication_date`, `title`,
+  optional `keywords`). It filters to Google's freshness window (default 48h, newest first) and
+  can cap the count (Google's limit is 1000). Feed the result to `renderUrlset` like any sub-sitemap.
+  `SitemapUrl` gained an optional `news` field and `renderUrlset` emits the `news:` namespace.
+- **Richer image entries**: `SitemapUrl.images` now accepts `string | { loc, title?, caption? }`
+  (a string stays shorthand for `{ loc }`). `renderUrlset` emits `<image:title>`/`<image:caption>`
+  when present. (Google reads only `<image:loc>` since 2022; the extra fields remain valid in the
+  image sitemap protocol and are used by other engines.)
+- **`robots.txt` helper** (`./robots`): `buildRobotsTxt(opts)` / `robotsTxtHandler(opts)` emit a
+  robots.txt with the `Sitemap:` line(s) pointing at your index, plus optional allow/disallow, host
+  and raw extra lines. Same handler shape as the sitemap endpoints (Astro + Next).
+
+### Changed
+- **`validateUrls`** gained hreflang and value/format checks: `hreflang-duplicate`,
+  `hreflang-no-self`, `hreflang-no-x-default`, `hreflang-non-reciprocal` (reciprocity is verified
+  for targets present in the same urlset, so split-by-language sitemaps aren't false-flagged),
+  plus `invalid-priority` (outside 0–1), `invalid-changefreq` (not a valid enum) and
+  `invalid-lastmod` (not a W3C datetime). Toggle with `checkHreflang` / `checkValues` (default on).
+
 ## [0.4.0] — 2026-07-03
 
 ### Added

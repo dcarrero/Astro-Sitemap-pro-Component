@@ -22,8 +22,11 @@ extracted to be reusable — a sibling of
 - **Localized XSL stylesheet** (en, es, fr, de, pt, it — extensible), themable (brand + accent).
 - **One handler shape** that works as an Astro endpoint *and* a Next route handler (web `Response`).
 - **IndexNow** (`./indexnow`) — ping Bing/Yandex on deploy with only the URLs that changed.
-- **Validation** (`./validate`) — lint a urlset for duplicate/non-canonical URLs and dishonest
-  `lastmod`; the Astro integration also flags `noindex`/canonical drift in your built pages.
+- **News sitemaps** (`./news`) — `<news:news>` entries with the 48h freshness window handled for you.
+- **Validation** (`./validate`) — lint a urlset for duplicate/non-canonical URLs, dishonest
+  `lastmod`, broken hreflang (reciprocity/x-default) and bad priority/changefreq; the Astro
+  integration also flags `noindex`/canonical drift in your built pages.
+- **`robots.txt` helper** (`./robots`) — emit the `Sitemap:` line pointing at your index.
 
 ## Install
 
@@ -224,7 +227,49 @@ import { validateUrls } from "astro-sitemap-pro-component/validate";
 for (const i of validateUrls(myUrls)) console[i.level === "error" ? "error" : "warn"](i.message);
 ```
 
-The Astro `sitemapCoverage` integration runs this for you at build time (see above).
+The Astro `sitemapCoverage` integration runs this for you at build time (see above). hreflang
+reciprocity and priority/changefreq/lastmod checks run too (toggle with `checkHreflang` /
+`checkValues`).
+
+## News sitemaps (`./news`)
+
+Google News wants a dedicated sitemap of your **recent** articles — only the last ~48h, at most
+1000 URLs, each with a `<news:news>` block. `newsUrls` handles the freshness window and ordering;
+you just map your posts:
+
+```ts
+import { newsUrls } from "astro-sitemap-pro-component/news";
+import { urlsetHandler } from "astro-sitemap-pro-component/handlers";
+
+// src/pages/news-sitemap.xml.ts
+export const GET = urlsetHandler(async () => {
+  const posts = await getCollection("news");
+  return newsUrls(
+    posts.map((p) => ({ loc: `${SITE}/noticias/${p.slug}`, title: p.data.title, publicationDate: p.data.date })),
+    { publicationName: "EspecialMundial", publicationLanguage: "es" }, // freshnessHours: 48 by default
+  );
+});
+```
+
+Older articles are dropped automatically; pass `max` to cap the count, `keywords`/`images` per
+article for the optional fields, or `now` to control the window (handy in tests). Add this file as
+another entry in your sitemap index.
+
+## robots.txt (`./robots`)
+
+Point crawlers at the index — the one line every site needs:
+
+```ts
+// src/pages/robots.txt.ts
+import { robotsTxtHandler } from "astro-sitemap-pro-component/robots";
+export const GET = robotsTxtHandler({
+  sitemaps: "https://site.com/sitemap.xml",
+  disallow: ["/admin", "/*?utm_"],
+});
+```
+
+`buildRobotsTxt(opts)` returns the string if you'd rather write a static file. Defaults to
+`Allow: /` when you pass no rules; `extra` appends raw lines for advanced multi-agent policies.
 
 ## Theming / i18n the stylesheet
 
@@ -238,9 +283,10 @@ Not built yet — candidates from the SEO/GEO checklist:
 
 - **Auto-chunk at the sitemaps.org limits** — split a `<urlset>` past 50,000 URLs / 50 MB into
   `-1`, `-2`… and emit the extra index entries, logging the split (no silent truncation).
-- **Video sitemaps** (`<video:video>`) and richer image entries (title/caption).
-- **`robots.txt` helper** that emits the `Sitemap:` line pointing at the index.
-- **hreflang reciprocity / `x-default` validation** for clusters.
+- **Build-to-build diffing** — compute exactly which URLs are new/changed/removed vs the previous
+  build, to drive precise IndexNow drips and detect deletions (→ 404/410).
+- **Video sitemaps** (`<video:video>`).
+- **Coverage parity for Next.js** and a real automated test suite.
 
 ## License
 

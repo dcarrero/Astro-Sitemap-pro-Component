@@ -14,7 +14,7 @@
 // submitUrls / submitFreshByLastmod NEVER throw — a failed ping must never break a
 // deploy; the error comes back in the result instead.
 
-import type { SitemapUrl } from "./core";
+import type { SitemapUrl } from "./core.js";
 
 const ENDPOINT = "https://api.indexnow.org/indexnow";
 // IndexNow accepts at most 10,000 URLs per request; larger lists are chunked.

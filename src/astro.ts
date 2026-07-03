@@ -16,7 +16,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateUrls, type SitemapIssue } from "./validate";
+import { validateUrls, type SitemapIssue } from "./validate.js";
 
 export type CoverageOptions = {
   /** Filename of the sitemap index (or a single urlset) in the build output. Default "sitemap.xml". */

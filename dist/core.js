@@ -13,6 +13,7 @@ function credit(opts) {
 const SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9";
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const IMAGE_NS = "http://www.google.com/schemas/sitemap-image/1.1";
+const NEWS_NS = "http://www.google.com/schemas/sitemap-news/0.9";
 export function escapeXml(s) {
     return s
         .replace(/&/g, "&amp;")
@@ -48,27 +49,49 @@ function stylesheetPI(opts) {
     const href = opts?.stylesheetHref === undefined ? "/sitemap.xsl" : opts.stylesheetHref;
     return href ? `\n<?xml-stylesheet type="text/xsl" href="${escapeXml(href)}"?>` : "";
 }
+function imageBlock(img) {
+    const i = typeof img === "string" ? { loc: img } : img;
+    return (`<image:image><image:loc>${escapeXml(i.loc)}</image:loc>` +
+        (i.title ? `<image:title>${escapeXml(i.title)}</image:title>` : "") +
+        (i.caption ? `<image:caption>${escapeXml(i.caption)}</image:caption>` : "") +
+        `</image:image>`);
+}
+function newsBlock(n) {
+    const date = iso(n.publicationDate);
+    const kw = n.keywords == null ? "" : Array.isArray(n.keywords) ? n.keywords.join(", ") : n.keywords;
+    return (`<news:news>` +
+        `<news:publication>` +
+        `<news:name>${escapeXml(n.publicationName)}</news:name>` +
+        `<news:language>${escapeXml(n.publicationLanguage)}</news:language>` +
+        `</news:publication>` +
+        (date ? `<news:publication_date>${escapeXml(date)}</news:publication_date>` : "") +
+        `<news:title>${escapeXml(n.title)}</news:title>` +
+        (kw ? `<news:keywords>${escapeXml(kw)}</news:keywords>` : "") +
+        `</news:news>`);
+}
 /** Render a <urlset> (one sub-sitemap). */
 export function renderUrlset(urls, opts) {
     const needsXhtml = urls.some((u) => u.alternates?.length);
     const needsImage = urls.some((u) => u.images?.length);
+    const needsNews = urls.some((u) => u.news);
     const ns = `xmlns="${SITEMAP_NS}"` +
         (needsXhtml ? ` xmlns:xhtml="${XHTML_NS}"` : "") +
-        (needsImage ? ` xmlns:image="${IMAGE_NS}"` : "");
+        (needsImage ? ` xmlns:image="${IMAGE_NS}"` : "") +
+        (needsNews ? ` xmlns:news="${NEWS_NS}"` : "");
     const body = urls
         .map((u) => {
         const lastmod = iso(u.lastmod);
         const alts = (u.alternates ?? [])
             .map((a) => `<xhtml:link rel="alternate" hreflang="${escapeXml(a.hreflang)}" href="${escapeXml(a.href)}"/>`)
             .join("");
-        const imgs = (u.images ?? [])
-            .map((src) => `<image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`)
-            .join("");
+        const imgs = (u.images ?? []).map(imageBlock).join("");
+        const news = u.news ? newsBlock(u.news) : "";
         return (`<url><loc>${escapeXml(u.loc)}</loc>` +
             (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
             (u.changefreq ? `<changefreq>${u.changefreq}</changefreq>` : "") +
             (u.priority != null ? `<priority>${u.priority.toFixed(1)}</priority>` : "") +
             alts +
+            news +
             imgs +
             `</url>`);
     })

@@ -3,7 +3,7 @@
 // <urlset>s where each URL is listed with its own <loc> and the full, reciprocal
 // hreflang set (Google's recommended i18n annotation). Works for any number of
 // languages — split your sitemap by type AND by language.
-import type { Alternate, ChangeFreq, SitemapUrl } from "./core";
+import type { Alternate, ChangeFreq, SitemapUrl } from "./core.js";
 
 /** One language version of a page. */
 export type LangUrl = {

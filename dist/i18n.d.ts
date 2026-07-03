@@ -1,4 +1,4 @@
-import type { Alternate, ChangeFreq, SitemapUrl } from "./core";
+import type { Alternate, ChangeFreq, SitemapUrl } from "./core.js";
 /** One language version of a page. */
 export type LangUrl = {
     lang: string;

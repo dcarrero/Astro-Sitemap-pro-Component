@@ -1,5 +1,5 @@
-import { type RenderOptions, type SitemapUrl, type SubSitemap } from "./core";
-import { type StylesheetOptions } from "./stylesheet";
+import { type RenderOptions, type SitemapUrl, type SubSitemap } from "./core.js";
+import { type StylesheetOptions } from "./stylesheet.js";
 type MaybePromise<T> = T | Promise<T>;
 type Handler = () => Promise<Response>;
 /** GET handler for the sitemap index. Pass a function so data is read at request/build time. */

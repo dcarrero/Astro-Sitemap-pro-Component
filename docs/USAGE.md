@@ -103,9 +103,36 @@ export const GET = stylesheetHandler({ lang: "es", brand: "My Site", accent: "#f
 Add `transpilePackages: ["astro-sitemap-pro-component"]` to `next.config.ts` so Next compiles the
 package's TypeScript.
 
+## 2c. News sub-sitemap (optional)
+
+For a Google News site, add a dedicated sitemap of recent articles (last ~48h):
+
+```ts
+// src/pages/news-sitemap.xml.ts
+import { newsUrls } from "astro-sitemap-pro-component/news";
+import { urlsetHandler } from "astro-sitemap-pro-component/handlers";
+export const GET = urlsetHandler(() =>
+  newsUrls(myPosts.map((p) => ({ loc: `${SITE}/blog/${p.slug}`, title: p.title, publicationDate: p.date })), {
+    publicationName: "My Site",
+    publicationLanguage: "es",
+  }),
+);
+```
+
+Then add `{ loc: `${SITE}/news-sitemap.xml` }` to `subs()`. Images can carry title/caption:
+`images: [{ loc: "…/photo.jpg", title: "…", caption: "…" }]`.
+
 ## 3. robots.txt
 
-Point only at the **index**; Google finds the rest:
+Point only at the **index**; Google finds the rest. Serve it with the helper:
+
+```ts
+// src/pages/robots.txt.ts
+import { robotsTxtHandler } from "astro-sitemap-pro-component/robots";
+export const GET = robotsTxtHandler({ sitemaps: `${SITE}/sitemap.xml`, disallow: ["/admin"] });
+```
+
+…or, as a static file:
 
 ```
 Sitemap: https://mysite.com/sitemap.xml

@@ -16,7 +16,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateUrls } from "./validate";
+import { validateUrls } from "./validate.js";
 /** Normalize a pathname for set comparison: decoded, no leading/trailing slashes ("" = root). */
 function norm(pathname) {
     let s = pathname.trim();

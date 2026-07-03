@@ -4,6 +4,29 @@ export type Alternate = {
     hreflang: string;
     href: string;
 };
+/**
+ * An image entry for a URL. A bare string is shorthand for `{ loc }`.
+ * NOTE: Google reads only `<image:loc>` (it deprecated title/caption in 2022); the
+ * extra fields stay valid per the image sitemap protocol and are used by other engines.
+ */
+export type ImageInfo = {
+    loc: string;
+    title?: string;
+    caption?: string;
+};
+/** Google News annotation for a URL — pairs with a News sitemap (`./news`). */
+export type NewsInfo = {
+    /** Publication name, e.g. "EspecialMundial". */
+    publicationName: string;
+    /** Publication language (ISO 639, e.g. "es", "en"). */
+    publicationLanguage: string;
+    /** Article publication date (W3C datetime). */
+    publicationDate: string | Date;
+    /** Article headline (must match the on-page title). */
+    title: string;
+    /** Optional comma-separated (or array) keywords. */
+    keywords?: string[] | string;
+};
 export type SitemapUrl = {
     loc: string;
     lastmod?: string | Date;
@@ -11,8 +34,10 @@ export type SitemapUrl = {
     priority?: number;
     /** hreflang alternates (multilingual sites). Include an "x-default" if you have one. */
     alternates?: Alternate[];
-    /** Absolute image URLs to attach as <image:image> (Google image sitemaps). */
-    images?: string[];
+    /** Images to attach as <image:image>. A string is shorthand for `{ loc }`. */
+    images?: (string | ImageInfo)[];
+    /** Google News annotation (<news:news>). Build these with `newsUrls` from `./news`. */
+    news?: NewsInfo;
 };
 export type SubSitemap = {
     loc: string;

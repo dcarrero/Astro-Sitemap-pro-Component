@@ -10,6 +10,27 @@ export type ChangeFreq =
 /** hreflang alternate for an i18n URL (e.g. { hreflang: "en", href: "https://…/en/…" }). */
 export type Alternate = { hreflang: string; href: string };
 
+/**
+ * An image entry for a URL. A bare string is shorthand for `{ loc }`.
+ * NOTE: Google reads only `<image:loc>` (it deprecated title/caption in 2022); the
+ * extra fields stay valid per the image sitemap protocol and are used by other engines.
+ */
+export type ImageInfo = { loc: string; title?: string; caption?: string };
+
+/** Google News annotation for a URL — pairs with a News sitemap (`./news`). */
+export type NewsInfo = {
+  /** Publication name, e.g. "EspecialMundial". */
+  publicationName: string;
+  /** Publication language (ISO 639, e.g. "es", "en"). */
+  publicationLanguage: string;
+  /** Article publication date (W3C datetime). */
+  publicationDate: string | Date;
+  /** Article headline (must match the on-page title). */
+  title: string;
+  /** Optional comma-separated (or array) keywords. */
+  keywords?: string[] | string;
+};
+
 export type SitemapUrl = {
   loc: string;
   lastmod?: string | Date;
@@ -17,8 +38,10 @@ export type SitemapUrl = {
   priority?: number;
   /** hreflang alternates (multilingual sites). Include an "x-default" if you have one. */
   alternates?: Alternate[];
-  /** Absolute image URLs to attach as <image:image> (Google image sitemaps). */
-  images?: string[];
+  /** Images to attach as <image:image>. A string is shorthand for `{ loc }`. */
+  images?: (string | ImageInfo)[];
+  /** Google News annotation (<news:news>). Build these with `newsUrls` from `./news`. */
+  news?: NewsInfo;
 };
 
 export type SubSitemap = { loc: string; lastmod?: string | Date };
@@ -44,6 +67,7 @@ function credit(opts?: RenderOptions): string {
 const SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9";
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const IMAGE_NS = "http://www.google.com/schemas/sitemap-image/1.1";
+const NEWS_NS = "http://www.google.com/schemas/sitemap-news/0.9";
 
 export function escapeXml(s: string): string {
   return s
@@ -82,14 +106,43 @@ function stylesheetPI(opts?: RenderOptions): string {
   return href ? `\n<?xml-stylesheet type="text/xsl" href="${escapeXml(href)}"?>` : "";
 }
 
+function imageBlock(img: string | ImageInfo): string {
+  const i = typeof img === "string" ? { loc: img } : img;
+  return (
+    `<image:image><image:loc>${escapeXml(i.loc)}</image:loc>` +
+    (i.title ? `<image:title>${escapeXml(i.title)}</image:title>` : "") +
+    (i.caption ? `<image:caption>${escapeXml(i.caption)}</image:caption>` : "") +
+    `</image:image>`
+  );
+}
+
+function newsBlock(n: NewsInfo): string {
+  const date = iso(n.publicationDate);
+  const kw =
+    n.keywords == null ? "" : Array.isArray(n.keywords) ? n.keywords.join(", ") : n.keywords;
+  return (
+    `<news:news>` +
+    `<news:publication>` +
+    `<news:name>${escapeXml(n.publicationName)}</news:name>` +
+    `<news:language>${escapeXml(n.publicationLanguage)}</news:language>` +
+    `</news:publication>` +
+    (date ? `<news:publication_date>${escapeXml(date)}</news:publication_date>` : "") +
+    `<news:title>${escapeXml(n.title)}</news:title>` +
+    (kw ? `<news:keywords>${escapeXml(kw)}</news:keywords>` : "") +
+    `</news:news>`
+  );
+}
+
 /** Render a <urlset> (one sub-sitemap). */
 export function renderUrlset(urls: SitemapUrl[], opts?: RenderOptions): string {
   const needsXhtml = urls.some((u) => u.alternates?.length);
   const needsImage = urls.some((u) => u.images?.length);
+  const needsNews = urls.some((u) => u.news);
   const ns =
     `xmlns="${SITEMAP_NS}"` +
     (needsXhtml ? ` xmlns:xhtml="${XHTML_NS}"` : "") +
-    (needsImage ? ` xmlns:image="${IMAGE_NS}"` : "");
+    (needsImage ? ` xmlns:image="${IMAGE_NS}"` : "") +
+    (needsNews ? ` xmlns:news="${NEWS_NS}"` : "");
 
   const body = urls
     .map((u) => {
@@ -100,15 +153,15 @@ export function renderUrlset(urls: SitemapUrl[], opts?: RenderOptions): string {
             `<xhtml:link rel="alternate" hreflang="${escapeXml(a.hreflang)}" href="${escapeXml(a.href)}"/>`,
         )
         .join("");
-      const imgs = (u.images ?? [])
-        .map((src) => `<image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`)
-        .join("");
+      const imgs = (u.images ?? []).map(imageBlock).join("");
+      const news = u.news ? newsBlock(u.news) : "";
       return (
         `<url><loc>${escapeXml(u.loc)}</loc>` +
         (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
         (u.changefreq ? `<changefreq>${u.changefreq}</changefreq>` : "") +
         (u.priority != null ? `<priority>${u.priority.toFixed(1)}</priority>` : "") +
         alts +
+        news +
         imgs +
         `</url>`
       );

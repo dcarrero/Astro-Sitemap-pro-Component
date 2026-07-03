@@ -1,4 +1,4 @@
-import type { SitemapUrl } from "./core";
+import type { SitemapUrl } from "./core.js";
 /** Generate a random IndexNow key (hex). It is public by design — publish it at /<key>.txt. */
 export declare function generateKey(bytes?: number): string;
 /** GET handler that serves the key file as text/plain. Mount it at /<key>.txt. */
